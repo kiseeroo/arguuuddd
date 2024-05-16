@@ -1,0 +1,191 @@
+import java.util.ArrayList;
+
+public class Task 
+{
+    public static final String ansiGreen = "\u001B[32m";
+    public static final String ansiReset = "\u001B[0m";
+    static String[] operator = {"**", "*", "/", "+", "-", ">>", "<<", ">", "<", "!=", "&&", "||"};
+    static int[] precedence1 = {2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8};
+    static int[] precedence2 = {2, 3, 3, 3, 3, 4, 4, 5, 5, 6, 7, 7};
+    public static void main(String[] args)
+    {
+        System.out.println(ansiGreen + "Rule 1" + ansiReset);
+        printResult("5 ** 2 >> 6 / 3", 1);
+        printResult("2 ** 2 ** 3 / 4 + 3 * 2", 1);
+        printResult("12 - 2 * 4 != 1 && 9 + 10 / 2 > 12", 1);
+        System.out.println(ansiGreen + "Rule 2" + ansiReset);
+        printResult("3 * 2 + 4 << 3 << 1", 2);
+        printResult("2 * 4 + 9 < 20 || 45 / 5 + 4 != 5", 2);
+        printResult("5 * 3 ** 2 + 5 > 6 ** 3 >> 4 / 2", 2);
+    }
+    public static void printResult(String expression, int ruleNumber)
+    {
+        System.out.println("Expression: " + expression);
+        Object result = splitExpression(expression, ruleNumber);
+        System.out.println("Result: " + result + "\n" + ansiGreen + "~~~~~" + ansiReset);
+    }
+    public static Object splitExpression(String expression, int ruleNumber)
+    {
+        String[] tokens = expression.split(" ");
+        ArrayList<Object> operandList = new ArrayList<Object>();
+        ArrayList<String> operatorList = new ArrayList<String>();
+        for (int i = 0; i < tokens.length; i++)
+        {
+            if (i % 2 == 1)
+            {
+                operatorList.add(tokens[i]);
+            }
+            else
+            {
+                operandList.add(tokens[i]);
+            }
+        }
+        ArrayList<Integer> operatorPrecedence = new ArrayList<Integer>();
+        opPrecedence(operatorPrecedence, operatorList, ruleNumber);
+        return evaluateExpression(operandList, operatorList, operatorPrecedence);
+    }
+    private static Object convertToCorrectType(Object operand) 
+    {
+        if (operand instanceof String) {
+            String str = (String) operand;
+            if (str.equalsIgnoreCase("true") || str.equalsIgnoreCase("false")) {
+                return Boolean.parseBoolean(str);
+            } else {
+                return Integer.parseInt(str);
+            }
+        }
+        return operand;
+    }
+    public static Object evaluateExpression(ArrayList<Object> operandList, ArrayList<String> operatorList, ArrayList<Integer> operatorPrecedence)
+    {
+        ArrayList<Integer> tempList = new ArrayList<Integer>();
+        int i = 0;
+        while (i < operatorPrecedence.size())
+        {
+            int index = operatorPrecedence.get(i);
+            String operator = operatorList.get(index);
+            tempList.add(index);
+            int counter = 0;
+            for (int j = 0; j < tempList.size(); j++)
+            {
+                if (index > tempList.get(j))
+                {
+                    counter++;
+                }
+            }
+            index -= counter;
+            Object op1 = operandList.get(index);
+            Object op2 = operandList.get(index + 1);
+            Object result = calculate(op1, op2, operator);
+            System.out.println(op1 + " " + operator + " " + op2 + " = " + result);
+            operandList.remove(index);
+            operandList.remove(index);
+            operandList.add(index, result);
+            i++;
+        }
+        return operandList.get(0);
+    }
+    public static Object calculate(Object op1, Object op2, String operator) 
+    {
+        op1 = convertToCorrectType(op1);
+        op2 = convertToCorrectType(op2);
+        switch (operator) {
+            case "**":
+                return (int) Math.pow((int) op1, (int) op2);
+            case "*":
+                return (int) op1 * (int) op2;
+            case "/":
+                if ((int) op2 != 0) return (int) op1 / (int) op2;
+                else throw new ArithmeticException("Division by zero");
+            case "+":
+                return (int) op1 + (int) op2;
+            case "-":
+                return (int) op1 - (int) op2;
+            case ">>":
+                return (int) op1 >> (int) op2;
+            case "<<":
+                return (int) op1 << (int) op2;
+            case ">":
+                return (int) op1 > (int) op2;
+            case "<":
+                return (int) op1 < (int) op2;
+            case "!=":
+                return !op1.equals(op2);
+            case "&&":
+                return (boolean) op1 && (boolean) op2;
+            case "||":
+                return (boolean) op1 || (boolean) op2;
+            default:
+                throw new IllegalArgumentException("Unsupported operator: " + operator);
+        }
+    }
+    public static void opPrecedence(ArrayList<Integer> operatorPrecedence, ArrayList<String> operatorList, int ruleNumber)
+    {
+        ArrayList<Integer> formerPrecedence = new ArrayList<Integer>();
+        if (ruleNumber == 1)
+        {
+            for (int i = 0; i < operatorList.size(); i++)
+            {
+                for (int j = 0; j < 12; j++)
+                {
+                    if (operatorList.get(i).equals(operator[j])) formerPrecedence.add(precedence1[j]);
+                }
+            }
+            int k = 2, j = 0, counter = 0;
+            while (j < formerPrecedence.size())
+            {
+                if (formerPrecedence.get(j) == k)
+                {
+                    if (k == 2) operatorPrecedence.add(0, j);
+                    else operatorPrecedence.add(j);
+                }
+                counter++;
+                j++;
+                if (counter == formerPrecedence.size() && k <= 8)
+                {
+                    j = 0;
+                    counter = 0;
+                    k++;
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < operatorList.size(); i++)
+            {
+                for (int j = 0; j < 12; j++)
+                {
+                    if (operatorList.get(i).equals(operator[j])) formerPrecedence.add(precedence2[j]);
+                }
+            }
+            int k = 4, j = 0, counter = 0;
+            while (j < formerPrecedence.size())
+            {
+                if (formerPrecedence.get(j) == k) operatorPrecedence.add(0, j);
+                counter++;
+                j++;
+                if (counter == formerPrecedence.size() && k >= 2)
+                {
+                    j = 0;
+                    counter = 0;
+                    k--;
+                }
+            }
+            k = 5;
+            j = 0;
+            counter = 0;
+            while (j < formerPrecedence.size())
+            {
+                if (formerPrecedence.get(j) == k) operatorPrecedence.add(j);
+                counter++;
+                j++;
+                if (counter == formerPrecedence.size() && k <= 7)
+                {
+                    j = 0;
+                    counter = 0;
+                    k++;
+                }
+            }
+        }
+    }
+}

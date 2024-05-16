@@ -1,0 +1,21 @@
+	int x = 0;
+int y = 0;
+
+void thread1() {
+    if (y < 7) {
+        x = 12;
+    }
+}
+
+void thread2() {
+    if (x > 0) {
+        y = 7;
+    }
+}
+
+	
+************************QUESTIONS***************************
+Data race: YES
+lines numbers: 5, 12 
+variables: x, y
+possible values of the variable "y" at the end of execution: 0, 7

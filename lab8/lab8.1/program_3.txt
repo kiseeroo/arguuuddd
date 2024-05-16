@@ -1,0 +1,28 @@
+class SharedData {
+    private int value = 0;
+
+    synchronized void increment() {
+        value++;
+    }
+
+    synchronized void decrement() {
+        value--;
+    }
+}
+
+SharedData sharedData = new SharedData();
+
+void thread1() {
+    sharedData.increment();
+}
+
+void thread2() {
+    sharedData.decrement();
+}
+
+
+************************QUESTIONS***************************
+Data race:NO
+lines numbers:
+variables:
+possible values of the variable "value" at the end of execution: 0

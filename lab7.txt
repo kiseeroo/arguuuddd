@@ -1,0 +1,27 @@
+-- Factorial function using pattern matching
+factorial :: (Integral a) => a -> a
+factorial 0 = 1
+factorial n
+  | n > 0     = n * factorial (n - 1)
+  | otherwise = error "Factorial is not defined for negative numbers"
+
+-- Function to test factorials of 0, 5, and 10
+testFactorials :: IO ()
+testFactorials = do
+  let testValues = [0, 5, 10]
+  putStrLn "Testing factorial function:"
+  mapM_ (\n -> putStrLn $ "factorial " ++ show n ++ " = " ++ show (factorial n)) testValues
+
+-- Main function to interact with the user and run tests
+main :: IO ()
+main = do
+  -- Run tests
+  testFactorials
+  
+  -- User interaction for calculating factorial
+  putStrLn "Enter a non-negative integer:"
+  input <- getLine
+  let number = read input :: Integer
+  if number >= 0
+    then print (factorial number)
+    else putStrLn "Please enter a non-negative integer."
